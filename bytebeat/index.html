@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <title>Psub's Bytebeat Editor</title>
+    <style>
+      @font-face {
+        font-family: "unifont";
+        src: url("https://corsproxy.io?https%3A%2F%2Funifoundry.com%2Fpub%2Funifont%2Funifont-15.0.06%2Ffont-builds%2Funifont-15.0.06.otf") format("opentype");
+      }
+
+      @font-face {
+        font-family: "unifont_csur";
+        src: url("https://corsproxy.io?https%3A%2F%2Funifoundry.com%2Fpub%2Funifont%2Funifont-15.0.06%2Ffont-builds%2Funifont_csur-15.0.06.otf") format("opentype");
+      }
+
+      @font-face {
+        font-family: "unifont_upper";
+        src: url("https://corsproxy.io?https%3A%2F%2Funifoundry.com%2Fpub%2Funifont%2Funifont-15.0.06%2Ffont-builds%2Funifont_upper-15.0.06.otf") format("opentype");
+      }
+
+      body {
+        /*Customize it!*/
+        --main-background-color: black;
+        --main-text-color: white;
+        --main-border-color: #497187;
+        --font-family: Courier, monospace;
+        --highlight-background-color: #122436;
+        --highlight-text-color: #FF9062;
+        --invert-background-color: white;
+        --link-color-main: powderblue;
+        --link-color-visited: plum;
+        --good: lime;
+        --bad: red;
+      }
+
+      body.light {
+        --main-border-color: #99cae5;
+        --highlight-background-color: #d3e5f6;
+        --invert-background-color: black;
+        --link-color-main: blue;
+        --link-color-visited: purple;
+      }
+
+      body {
+        text-align: center;
+        background-color: var(--main-background-color);
+        color: var(--main-text-color);
+        caret-color: var(--main-text-color);
+        font-family: var(--font-family);
+      }
+
+      button {
+        background-color: transparent;
+        color: var(--main-text-color);
+        border: 2px solid var(--main-border-color);
+        border-radius: 5%;
+      }
+
+      button:hover,
+      input:hover,
+      select:hover {
+        background-color: var(--invert-background-color);
+        color: var(--main-background-color);
+      }
+
+      input,
+      select {
+        border-radius: 5%;
+      }
+
+      textarea,
+      input,
+      select,
+      button {
+        background-color: var(--highlight-background-color);
+        color: var(--main-text-color);
+        border: 2px solid var(--main-border-color);
+        font-family: var(--font-family);
+      }
+
+      option {
+        background-color: transparent;
+      }
+
+      #backgroundInput {
+        background-color: transparent;
+        border: 2px solid var(--main-border-color);
+        border-radius: 5%;
+      }
+
+      #formula {
+        width: 100%;
+        height: 400px;
+      }
+
+      canvas {
+        border: 1px solid var(--main-text-color);
+      }
+
+      #splashtext {
+        color: var(--good);
+      }
+
+      #splashtext.error {
+        color: var(--bad);
+      }
+
+      h1, h2 {
+        color: var(--highlight-text-color);
+      }
+
+      a {
+        color: var(--link-color-main);
+      }
+
+      a:visited {
+        color: var(--link-color-visited);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Bytebeat Editor</h1>
+    <p id="splashtext" title="It's just a splash text, what did you even expect?">NaN</p>
+    <span>Formula:</span>
+    <div>
+      <textarea id="formula"></textarea>
+    </div>
+    <br>
+    <div>
+      <label for="sampleRate">Sample Rate:</label>
+      <input type="number" value="8000" id="sampleRate" title="Sample rate selection.">
+      <br>
+      <div>
+        <label for="duration">Duration:</label>
+        <input type="number" id="duration" min="1" title="Duration input." value="1">
+      </div>
+    </div>
+    <br>
+    <div>
+      <button onclick="play()" id="play" title="Click to play the code on the formula.">Generate</button>
+      <button onclick="stop()" id="stop" title="Click to stop the generated code on the formula.">Stop</button>
+      <select id="mode" title='Select mode, default mode is "Bytebeat".'>
+        <option value="bytebeat">Bytebeat</option>
+        <option value="signedbytebeat">Signed Bytebeat</option>
+        <option value="floatbeat">Floatbeat</option>
+        <option value="bitbeat">Bitbeat</option>
+        <option value="1024">1024</option>
+      </select>
+      <select id="visualizer" title="Visualizer">
+        <option value="none">none</option>
+        <option value="square">square</option>
+        <option value="osci">oscilloscope</option>
+      </select>
+      <button onclick="copyLocationHref()" id="locationhref" title="Click to copy the url.">Copy URL</button>
+      <br>
+    </div>
+    <br>
+    <span>Owned by: <a href="https://www.reddit.com/user/psubscirbe/" target="_blank">u/psubscirbe</a>
+    </span>
+    <div>
+      <br>
+      <span>New to bytebeat? Check out this <a href="https://www.youtube.com/watch?v=K4GsZu8kBbw" target="_blank">tutorial</a>. </span>
+    </div>
+    <br>
+    <div>
+      <span>
+        <a href="http://canonical.org/~kragen/bytebeat/" target="_blank">History of bytebeat</a>
+      </span>
+    </div>
+    <br>
+    <a href="https://psubscirbe-bytebeat.neocities.org/library.txt" target="_blank">Library</a>
+    <a href="https://psubscirbe-bytebeat.neocities.org/ownerlibrary.txt" target="_blank">Owner library</a>
+    <a href="https://psubscirbe-bytebeat.neocities.org/bigcodelibrary.txt" target="_blank">Big code library</a>
+    <h1>Customization</h1>
+    <br>
+    <input id="bgCol" type="color" title="Background color" value="#000000">
+    <input id="txtCol" type="color" title="Text color" value="#FFFFFF">
+    <select id="FontCh">
+      <option value="Courier">Default (Courier)</option>
+      <option value="Consolas">Consolas</option>
+      <option value="Comic Sans MS">Comic Sans</option>
+      <option value="Arial">Arial</option>
+      <option value="Times New Roman">Roman</option>
+      <option value="Verdana">Verdana</option>
+      <option value="unifont, unifont_upper, unifont_csur">Unifont</option>
+    </select>
+    <input type="file" id="backgroundInput" accept="image/*">
+    <button onclick="changeBackground()" id="changeBG">Apply</button>
+    <br>
+    <h1>Forks</h1>
+    <a href="https://purepuro.neocities.org" target="_blank">LilFluffy's Bytebeat Composer</a>
+    <h2>Forked from <a href="https://psubscirbe-bytebeat.neocities.org/" target="_blank">psubscirbe's bytebeat player</a>
+    </h2>
+    <script>
+      "use strict";
+      let customFunctions = {
+        rnd_num: (x) => round(random() * 256),
+        rnd: (x) => random() * 256,
+        xor: (x, v) => x ^ x % v,
+        sinf: x => sin(x * PI / 128),
+        cosf: x => cos(x * PI / 128),
+        tanf: x => tan(x * PI / 128),
+        expm2: x => exp(x) - 2,
+        minrnd_num: (v, x) => min(round(random() * v), x),
+      }
+      //custom operations by u/psubscirbe <3
+      let mathProperties = Object.getOwnPropertyNames(Math);
+      for(let property of mathProperties) {
+        window[property] = Math[property];
+      }
+      let customProperties = Object.getOwnPropertyNames(customFunctions);
+      for(let property of customProperties) {
+        window[property] = customFunctions[property];
+      }
+      function secure() {
+        var handler = {
+          get: function(target, name) {
+            return secure();
+          },
+          set: function() {
+            throw new Error();
+          }
+        };
+        return new Proxy({}, handler);
+      }
+      function updateTheme() {
+        const bgCol = document.getElementById("bgCol").value;
+        const txtCol = document.getElementById("txtCol").value;
+        if(luminance(bgCol)>luminance(txtCol)) {
+          document.body.classList.add("light");
+        } else {
+          document.body.classList.remove("light");
+        }
+      }
+      function luminance(hex) {
+        const red = parseInt(hex.slice(1,3),16);
+        const green = parseInt(hex.slice(3,5),16);
+        const blue = parseInt(hex.slice(5,7),16);
+        return red+green+blue;
+      }
+      document.getElementById("bgCol").addEventListener("input", function() {
+        var col = this.value;
+        document.body.style.setProperty("--main-background-color", col);
+        updateTheme();
+      });
+      document.getElementById("txtCol").addEventListener("input", function() {
+        var col = this.value;
+        document.body.style.setProperty("--main-text-color", col);
+        updateTheme();
+      });
+      document.getElementById("FontCh").addEventListener("change", function() {
+        var font = this.value;
+        document.body.style.setProperty('--font-family', font);
+      });
+      document.getElementById("visualizer").addEventListener("change", updateVisualizer);
+      function updateVisualizer(visualizeSelect) {
+        let visualizer = (this || visualizeSelect).value;
+        if(visualizer == "none") {
+          if(document.getElementById("canvas")) {
+            document.getElementById("canvas").remove();
+          }
+        } else {
+          if(!document.getElementById("canvas")) {
+            let canvas = document.createElement("canvas");
+            canvas.width = 256;
+            canvas.height = 256;
+            canvas.id = "canvas";
+            document.getElementById("formula").after(canvas);
+          }
+        }
+      }
+
+      function changeBackground() {
+        const fileInput = document.getElementById('backgroundInput');
+        const file = fileInput.files[0];
+        if (file && file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            document.body.style.backgroundImage = `url('${e.target.result}')`;
+          };
+          reader.readAsDataURL(file);
+        } else {
+          if (Math.floor(Math.random() * 2) === 1) {
+            alert('Insert cash or select payment type.');
+          } else {
+            alert('Invalid image!');
+          }
+        }
+      }
+      function numberToFloat(input, mode) {
+        let outin;
+        switch (mode) {
+          case "bytebeat":
+            outin = (input & 255) / 127.5 - 1;
+            break;
+          case "signedbytebeat":
+            outin = ((input + 128) & 255) / 127.5 - 1;
+            break;
+          case "floatbeat":
+            outin = input;
+            break;
+          case "bitbeat":
+            outin = (input & 1) - 0.5;
+            break;
+          case "1024":
+            outin = (input & 1023) / 511.5 - 1; // (x&1023)/511.5-1
+            break;
+          default:
+            outin = (input & 255) / 127.5 - 1;
+        }
+        return outin;
+      }
+      let audioCtx;
+      let source;
+      let playing = false;
+      function play() {
+        if (playing) {
+          stop();
+        }
+        audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+        source = audioCtx.createBufferSource();
+        let formula = document.getElementById("formula").value;
+        let sampleRate = document.getElementById("sampleRate").value;
+        let duration = document.getElementById("duration").value;
+        let buffer;
+        try {
+          let bytebeatFunc = Function("t, document, window, console", `return (${formula})`);
+          let extra = [secure(), secure(), {
+            log: console.log
+          }];
+          let sample = bytebeatFunc(0, ...extra);
+          let stereo = false;
+          switch(typeof sample) {
+            case "number":
+            break;
+            case "object":
+            if(Array.isArray(sample)) {
+              stereo = true;
+            } else {
+              throw "Unrecognizable object returned";
+            }
+            break;
+            default:
+            throw "Unrecognized type returned: "+typeof sample;
+          }
+          let channels = stereo? sample.length : 1;
+          let samples = sampleRate * duration;
+          buffer = audioCtx.createBuffer(channels, samples, sampleRate);
+          let data;
+          if(stereo) {
+            data = [];
+            for(let channel = 0; channel < channels; channel++) {
+              data[channel] = buffer.getChannelData(channel);
+            }
+          } else {
+            data = buffer.getChannelData(0);
+          }
+          for (let t = 0; t < samples; t++) {
+            let input = bytebeatFunc(t, ...extra);
+            for(let channel = 0; channel < channels; channel++) {
+              
+              let mode = document.getElementById("mode").value;
+              let outin = numberToFloat(stereo? input[channel]:input, mode);
+              if(stereo) {
+                data[channel][t] = outin;
+              } else {
+                data[t] = outin;
+              }
+            }
+          }
+          text.innerText = "good";
+          text.classList.remove("error");
+        } catch (e) {
+          console.error(e);
+          text.innerText = e.toString();
+          text.classList.add("error");
+        }
+        source.buffer = buffer;
+        source.connect(audioCtx.destination);
+        source.start();
+        visualize(buffer, document.getElementById("visualizer").value);
+        playing = true;
+      }
+      function visualize(buffer, visualizer) {
+        if(visualizer=="none") {
+          return;
+        }
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const data = buffer.getChannelData(0); //Float32Array
+        switch(visualizer) {
+          case "square":
+            const stereo = buffer.numberOfChannels > 1;
+            const dataArray = new Uint8ClampedArray(256*256*4);
+            if(stereo) {
+              const data2 = buffer.getChannelData(1);
+              let data3;
+              if(buffer.numberOfChannels >= 3) {
+                data3 = buffer.getChannelData(2);
+              }
+              for(let i=0;i<256*256;i++) {
+                dataArray[i*4] = (data[i]+1)*128;
+                dataArray[i*4+1] = (data2[i]+1)*128;
+                dataArray[i*4+2] = data3? (data3[i]+1)*128:0;
+                dataArray[i*4+3] = 255;
+              }
+            } else {
+              for(let i=0;i<256*256;i++) {
+                const value = (data[i]+1)*128;
+                dataArray[i*4] = value;
+                dataArray[i*4+1] = value;
+                dataArray[i*4+2] = value;
+                dataArray[i*4+3] = 255;
+              }
+            }
+            ctx.putImageData(new ImageData(dataArray, 256, 256), 0, 0);
+            break;
+          case "osci":
+            const x = data;
+            if(buffer.numberOfChannels != 2) {
+              ctx.fillStyle="red";
+              ctx.fillRect(0,0,256,256);
+              break;
+            }
+            const y = buffer.getChannelData(1);
+            ctx.fillStyle = "rgba(0,0,0,0.5)";
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = "lime";
+            const start = audioCtx.currentTime;
+            const CHUNK_SIZE = 256;
+            function frame() {
+              if(!playing) {
+                return;
+              }
+              const offset = floor((audioCtx.currentTime - start) * buffer.sampleRate);
+              ctx.fillRect(0,0,256,256);
+              ctx.beginPath();
+              ctx.moveTo((x[offset]+1)*128,(y[offset]+1)*128);
+              for(let i=offset+1;i<offset+CHUNK_SIZE;i++) {
+                const distance = Math.sqrt((x[i]-x[i-1])**2+(y[i]-y[i-1])**2);
+                if(distance>0.3) {
+                  ctx.moveTo((x[i]+1)*128, (y[i]+1)*128);
+                } else {
+                  ctx.lineTo((x[i]+1)*128, (y[i]+1)*128);
+                }
+              }
+              ctx.stroke();
+              requestAnimationFrame(frame);
+            }
+            const request = requestAnimationFrame(frame);
+            cancelAnimationFrame(request-1);
+            break;
+        }
+      }
+
+      function stop() {
+        source.stop();
+        audioCtx.close();
+        playing = false;
+      }
+      const str001 = ["Hello world.", "West virginity rocks!", "Welcome to Gboard clipboard, any text you copy will be saved here.", " < label > splash text yeah < /label>", "This wasn't intentional.", "Word of the year: water", "Unicode has teached me anything.", "ramen", "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE", "Splash text loading: 1% Complete.", "()W()", "omaygot", "cheese", "int main();", "console.log()", "They did not see this one.", ".... - -- .-..", "sgdx vntkcms ad rtoqhrdc he xnt kds ld nts ne xntq azrdldms", "They said if you can never give up, uhh whats next?", "There are some exotic functions that you can use but they are a secret to find.", "Crazy? I was crazy once. They locked me in a room. A rubber room. A rubber room with rats.", "H", "[ Removed by Reddit ]", "there is nothing", "Segmentation fault (core dumped)"];
+      const text = document.getElementById("splashtext");
+      const textcon = Math.floor(Math.random() * str001.length);
+      const strset = str001[textcon];
+      text.textContent = strset;
+      const urlParams = new URLSearchParams(window.location.hash.slice(1));
+      const currentFormula = urlParams.get('formula') || '';
+      const currentSampleRate = urlParams.get('sampleRate') || 8000;
+      const currentDuration = urlParams.get('duration') || 20;
+      const currentMode = urlParams.get('mode') || 'bytebeat';
+      const currentVisualizer = urlParams.get('visualizer') || 'none';
+
+      function updateURLHash() {
+        const newURLParams = new URLSearchParams();
+        newURLParams.set('formula', formula.value);
+        if(sampleRate.value != 8000) {
+          newURLParams.set('sampleRate', sampleRate.value);
+        }
+        newURLParams.set('duration', duration.value);
+        if(mode.value != "bytebeat") {
+          newURLParams.set('mode', mode.value);
+        }
+        if(visualizer.value != "none") {
+          newURLParams.set('visualizer', visualizer.value);
+        }
+        window.location.hash = newURLParams.toString();
+      }
+      const formula = document.getElementById('formula');
+      formula.value = currentFormula;
+      formula.addEventListener('input', updateURLHash);
+      const sampleRate = document.getElementById('sampleRate');
+      sampleRate.value = currentSampleRate;
+      sampleRate.addEventListener('input', updateURLHash);
+      const duration = document.getElementById('duration');
+      duration.value = currentDuration;
+      duration.addEventListener('input', updateURLHash);
+      const mode = document.getElementById('mode');
+      mode.value = currentMode;
+      mode.addEventListener('input', updateURLHash);
+      const visualizer = document.getElementById('visualizer');
+      visualizer.value = currentVisualizer;
+      visualizer.addEventListener('input', updateURLHash);
+      updateVisualizer(visualizer);
+
+      function copyLocationHref() {
+        const locationHref = window.location.href;
+        navigator.clipboard.writeText(locationHref).then(() => {
+          alert("Copied to clipboard: " + locationHref);
+        }).catch((error) => {
+          alert("Failed to copy to clipboard: " + error);
+        });
+      }
+    </script>
+  </body>
+</html>
