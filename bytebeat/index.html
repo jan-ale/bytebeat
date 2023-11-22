@@ -151,6 +151,7 @@
         <option value="none">none</option>
         <option value="square">square</option>
         <option value="osci">oscilloscope</option>
+        <option value="wave">waveform</option>
       </select>
       <button onclick="copyLocationHref()" id="locationhref" title="Click to copy the url.">Copy URL</button>
       <br>
@@ -422,78 +423,107 @@
           this.visualize(buffer, document.getElementById("visualizer").value);
           this.playing = true;
         }
-        
-        visualize(buffer, visualizer) {
+
+        visualize(buffer, vizualizer) {
+          const self = this;
+          const visualizers = {square: function(ctx, buffer) {
+            const data = buffer.getChannelData(0); //Float32Array
+            const stereo = buffer.numberOfChannels > 1;
+            const dataArray = new Uint8ClampedArray(256*256*4);
+            if(stereo) {
+              const data2 = buffer.getChannelData(1);
+              let data3;
+              if(buffer.numberOfChannels >= 3) {
+                data3 = buffer.getChannelData(2);
+              }
+              for(let i=0;i<256*256;i++) {
+                dataArray[i*4] = (data[i]+1)*128;
+                dataArray[i*4+1] = (data2[i]+1)*128;
+                dataArray[i*4+2] = data3? (data3[i]+1)*128:0;
+                dataArray[i*4+3] = 255;
+              }
+            } else {
+              for(let i=0;i<256*256;i++) {
+                const value = (data[i]+1)*128;
+                dataArray[i*4] = value;
+                dataArray[i*4+1] = value;
+                dataArray[i*4+2] = value;
+                dataArray[i*4+3] = 255;
+              }
+            }
+            ctx.putImageData(new ImageData(dataArray, 256, 256), 0, 0);
+          },
+          osci: function(ctx, buffer) {
+            if(buffer.numberOfChannels != 2) {
+              ctx.fillStyle="red";
+              ctx.fillRect(0,0,256,256);
+              return;
+            }
+            const x = buffer.getChannelData(0);
+            const y = buffer.getChannelData(1);
+            ctx.fillStyle = "rgba(0,0,0,0.5)";
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = "lime";
+            const start = self.audioCtx.currentTime;
+            const chunk_size = 256;
+            function frame() {
+              if(!self.playing) {
+                return;
+              }
+              const offset = floor((self.audioCtx.currentTime - start) * buffer.sampleRate);
+              ctx.fillRect(0,0,256,256);
+              ctx.beginPath();
+              ctx.moveTo((x[offset]+1)*128,(y[offset]+1)*128);
+              for(let i=offset+1;i<offset+CHUNK_SIZE;i++) {
+                const distance = Math.sqrt((x[i]-x[i-1])**2+(y[i]-y[i-1])**2);
+                if(distance>0.3) {
+                  ctx.moveTo((x[i]+1)*128, (y[i]+1)*128);
+                } else {
+                  ctx.lineTo((x[i]+1)*128, (y[i]+1)*128);
+                }
+              }
+              ctx.stroke();
+              requestAnimationFrame(frame);
+            }
+            const request = requestAnimationFrame(frame);
+            cancelAnimationFrame(request-1);
+          },
+          wave: function(ctx, buffer) {
+            const y = buffer.getChannelData(0);
+            ctx.fillStyle = "rgba(0,0,0,0.5)";
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = "white";
+            const start = self.audioCtx.currentTime;
+            const CHUNK_SIZE = 256;
+            function frame() {
+              if(!self.playing) {
+                return;
+              }
+              const offset = floor( floor((self.audioCtx.currentTime - start) * buffer.sampleRate) /CHUNK_SIZE)*CHUNK_SIZE;
+              ctx.fillRect(0,0,256,256);
+              ctx.beginPath();
+              ctx.moveTo(0,(y[offset]+1)*128);
+              for(let x=0;x<CHUNK_SIZE;x++) {
+                ctx.lineTo(x, (y[x+offset]+1)*128);
+              }
+              ctx.stroke();
+              requestAnimationFrame(frame);
+            }
+            const request = requestAnimationFrame(frame);
+            cancelAnimationFrame(request-1);
+          }};
           if(visualizer=="none") {
             return;
           }
           const canvas = document.getElementById("canvas");
           const ctx = canvas.getContext("2d");
-          const data = buffer.getChannelData(0); //Float32Array
-          switch(visualizer) {
+          visualizers[vizualizer](ctx, buffer);
+          /*switch(visualizer) {
             case "square":
-              const stereo = buffer.numberOfChannels > 1;
-              const dataArray = new Uint8ClampedArray(256*256*4);
-              if(stereo) {
-                const data2 = buffer.getChannelData(1);
-                let data3;
-                if(buffer.numberOfChannels >= 3) {
-                  data3 = buffer.getChannelData(2);
-                }
-                for(let i=0;i<256*256;i++) {
-                  dataArray[i*4] = (data[i]+1)*128;
-                  dataArray[i*4+1] = (data2[i]+1)*128;
-                  dataArray[i*4+2] = data3? (data3[i]+1)*128:0;
-                  dataArray[i*4+3] = 255;
-                }
-              } else {
-                for(let i=0;i<256*256;i++) {
-                  const value = (data[i]+1)*128;
-                  dataArray[i*4] = value;
-                  dataArray[i*4+1] = value;
-                  dataArray[i*4+2] = value;
-                  dataArray[i*4+3] = 255;
-                }
-              }
-              ctx.putImageData(new ImageData(dataArray, 256, 256), 0, 0);
               break;
             case "osci":
-              const x = data;
-              if(buffer.numberOfChannels != 2) {
-                ctx.fillStyle="red";
-                ctx.fillRect(0,0,256,256);
-                break;
-              }
-              const y = buffer.getChannelData(1);
-              ctx.fillStyle = "rgba(0,0,0,0.5)";
-              ctx.lineWidth = 1;
-              ctx.strokeStyle = "lime";
-              const start = this.audioCtx.currentTime;
-              const CHUNK_SIZE = 256;
-              const self = this; //js...
-              function frame() {
-                if(!self.playing) {
-                  return;
-                }
-                const offset = floor((self.audioCtx.currentTime - start) * buffer.sampleRate);
-                ctx.fillRect(0,0,256,256);
-                ctx.beginPath();
-                ctx.moveTo((x[offset]+1)*128,(y[offset]+1)*128);
-                for(let i=offset+1;i<offset+CHUNK_SIZE;i++) {
-                  const distance = Math.sqrt((x[i]-x[i-1])**2+(y[i]-y[i-1])**2);
-                  if(distance>0.3) {
-                    ctx.moveTo((x[i]+1)*128, (y[i]+1)*128);
-                  } else {
-                    ctx.lineTo((x[i]+1)*128, (y[i]+1)*128);
-                  }
-                }
-                ctx.stroke();
-                requestAnimationFrame(frame);
-              }
-              const request = requestAnimationFrame(frame);
-              cancelAnimationFrame(request-1);
               break;
-          }
+          }*/
         }
 
         stop() {
@@ -501,7 +531,7 @@
           this.audioCtx.close();
           this.playing = false;
         }
-        
+
         setVolume(value) {
           this.volume = value;
           if(this.playing) {
