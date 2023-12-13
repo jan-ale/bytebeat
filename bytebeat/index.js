@@ -141,7 +141,7 @@ function numberToFloat(input, mode) {
     default:
       outin = (input & 255) / 127.5 - 1;
   }
-  return outin;
+  return min(max(outin,-1),1);
 }
 class BytebeatPlayer {
   constructor() {
