@@ -151,22 +151,38 @@ class BytebeatPlayer {
     this.playing = false;
     this.volume = document.getElementById("volume").value;
   }
-  play() {
-    if (this.playing) {
-      this.stop();
+  renderBuffer(func, start, length, sampleRate, channels, stereo) {
+    let extra = [secure(), secure()];
+    let buffer = this.audioCtx.createBuffer(channels, length, sampleRate);
+    let data = [];
+    for(let channel = 0; channel < channels; channel++) {
+      data[channel] = buffer.getChannelData(channel);
     }
-    this.audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+    for (let t = 0; t < length; t++) {
+      let input = func(t+start, ...extra);
+      for(let channel = 0; channel < channels; channel++) {
+        let mode = document.getElementById("mode").value;
+        let outin = numberToFloat(stereo?input[channel]:input, mode);
+        data[channel][t] = outin;
+      }
+    }
+    return buffer;
+  }
+  playBuffer(buffer) {
     this.source = this.audioCtx.createBufferSource();
-    this.gainNode = this.audioCtx.createGain();
+    this.source.buffer = buffer;
+    this.gainNode.gain.linearRampToValueAtTime(this.volume, 0.05);
+    this.source.connect(this.gainNode);
+    this.gainNode.connect(this.audioCtx.destination);
+    this.source.start();
+    this.visualize(buffer, document.getElementById("visualizer").value);
+  }
+  renderRange(startTime, length, sampleRate) {
     let formula = document.getElementById("formula").value;
-    let sampleRate = document.getElementById("sampleRate").value;
-    let duration = document.getElementById("duration").value;
     let buffer;
     try {
-      let bytebeatFunc = Function("t, document, window, console", `return (${formula})`);
-      let extra = [secure(), secure(), {
-        log: console.log
-      }];
+      let bytebeatFunc = Function("t, document, window", `return (${formula})`);
+      let extra = [secure(), secure()];
       let sample = bytebeatFunc(0, ...extra);
       let stereo = false;
       switch(typeof sample) {
@@ -183,30 +199,9 @@ class BytebeatPlayer {
           throw "Unrecognized type returned: "+typeof sample;
       }
       let channels = stereo? sample.length : 1;
-      let samples = sampleRate * duration;
-      buffer = this.audioCtx.createBuffer(channels, samples, sampleRate);
-      let data;
-      if(stereo) {
-        data = [];
-        for(let channel = 0; channel < channels; channel++) {
-          data[channel] = buffer.getChannelData(channel);
-        }
-      } else {
-        data = buffer.getChannelData(0);
-      }
-      for (let t = 0; t < samples; t++) {
-        let input = bytebeatFunc(t, ...extra);
-        for(let channel = 0; channel < channels; channel++) {
-
-          let mode = document.getElementById("mode").value;
-          let outin = numberToFloat(stereo? input[channel]:input, mode);
-          if(stereo) {
-            data[channel][t] = outin;
-          } else {
-            data[t] = outin;
-          }
-        }
-      }
+      let samples = sampleRate * length;
+      let start = sampleRate * startTime;
+      buffer = this.renderBuffer(bytebeatFunc, start, samples, sampleRate, channels, stereo);
       text.innerText = "good";
       text.classList.remove("error");
     } catch (e) {
@@ -214,13 +209,38 @@ class BytebeatPlayer {
       text.innerText = e.toString();
       text.classList.add("error");
     }
-    this.source.buffer = buffer;
-    this.gainNode.gain.linearRampToValueAtTime(this.volume, 0.05);
-    this.source.connect(this.gainNode);
-    this.gainNode.connect(this.audioCtx.destination);
-    this.source.start();
-    this.visualize(buffer, document.getElementById("visualizer").value);
+    return buffer;
+  }
+  play() {
+    if (this.playing) {
+      this.stop();
+    }
+    this.audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+    this.gainNode = this.audioCtx.createGain();
+    let sampleRate = +document.getElementById("sampleRate").value;
+    let duration = +document.getElementById("duration").value;
+    let rendering = document.getElementById("rendering").value;
     this.playing = true;
+    switch(rendering) {
+      case "once":
+        let buffer = this.renderRange(0, duration, sampleRate);
+        this.playBuffer(buffer);
+        break;
+      case "endless":
+        let nextBuffer = this.renderRange(0, duration, sampleRate);
+        let start = 0;
+        const self = this;
+        function playNext() {
+          self.playBuffer(nextBuffer);
+          if(self.playing) {
+            self.source.addEventListener("ended", playNext);
+          }
+          start += duration;
+          nextBuffer = self.renderRange(start, duration, sampleRate);
+        }
+        playNext();
+        break;
+    }
   }
 
   visualize(buffer, vizualizer) {
