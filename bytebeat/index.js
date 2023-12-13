@@ -1,6 +1,6 @@
 "use strict";
 let customFunctions = {
-  rnd_num: (x) => round(random() * 256),
+  rnd_num: round(random() * 256),
   rnd: (x) => random() * 256,
   xor: (x, v) => x ^ x % v,
   sinf: x => sin(x * PI / 128),
