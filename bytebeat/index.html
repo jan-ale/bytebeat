@@ -153,6 +153,10 @@
         <option value="osci">oscilloscope</option>
         <option value="wave">waveform</option>
       </select>
+      <select id="rendering" title="Idk">
+        <option value="once">Play for duration</option>
+        <option value="endless">Play endlessly</option>
+      </select>
       <button onclick="copyLocationHref()" id="locationhref" title="Click to copy the url.">Copy URL</button>
       <br>
     </div>
@@ -465,7 +469,7 @@
             ctx.lineWidth = 1;
             ctx.strokeStyle = "lime";
             const start = self.audioCtx.currentTime;
-            const chunk_size = 256;
+            const CHUNK_SIZE = 256;
             function frame() {
               if(!self.playing) {
                 return;
@@ -504,7 +508,7 @@
               ctx.beginPath();
               ctx.moveTo(0,(y[offset]+1)*128);
               for(let x=0;x<CHUNK_SIZE;x++) {
-                ctx.lineTo(x, (y[x+offset]+1)*128);
+                ctx.lineTo(x, 256-(y[x+offset]+1)*128);
               }
               ctx.stroke();
               requestAnimationFrame(frame);
