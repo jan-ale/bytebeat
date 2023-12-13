@@ -251,66 +251,64 @@ class BytebeatPlayer {
         }
       }
       ctx.putImageData(new ImageData(dataArray, 256, 256), 0, 0);
-    },
-                         osci: function(ctx, buffer) {
-                           if(buffer.numberOfChannels != 2) {
-                             ctx.fillStyle="red";
-                             ctx.fillRect(0,0,256,256);
-                             return;
-                           }
-                           const x = buffer.getChannelData(0);
-                           const y = buffer.getChannelData(1);
-                           ctx.fillStyle = "rgba(0,0,0,0.5)";
-                           ctx.lineWidth = 1;
-                           ctx.strokeStyle = "lime";
-                           const start = self.audioCtx.currentTime;
-                           const CHUNK_SIZE = 256;
-                           function frame() {
-                             if(!self.playing) {
-                               return;
-                             }
-                             const offset = floor((self.audioCtx.currentTime - start) * buffer.sampleRate);
-                             ctx.fillRect(0,0,256,256);
-                             ctx.beginPath();
-                             ctx.moveTo((x[offset]+1)*128,(y[offset]+1)*128);
-                             for(let i=offset+1;i<offset+CHUNK_SIZE;i++) {
-                               const distance = Math.sqrt((x[i]-x[i-1])**2+(y[i]-y[i-1])**2);
-                               if(distance>0.3) {
-                                 ctx.moveTo((x[i]+1)*128, (y[i]+1)*128);
-                               } else {
-                                 ctx.lineTo((x[i]+1)*128, (y[i]+1)*128);
-                               }
-                             }
-                             ctx.stroke();
-                             requestAnimationFrame(frame);
-                           }
-                           const request = requestAnimationFrame(frame);
-                           cancelAnimationFrame(request-1);
-                         },
-                         wave: function(ctx, buffer) {
-                           const y = buffer.getChannelData(0);
-                           ctx.fillStyle = "rgba(0,0,0,0.5)";
-                           ctx.lineWidth = 1;
-                           ctx.strokeStyle = "white";
-                           const start = self.audioCtx.currentTime;
-                           const CHUNK_SIZE = 256;
-                           function frame() {
-                             if(!self.playing) {
-                               return;
-                             }
-                             const offset = floor( floor((self.audioCtx.currentTime - start) * buffer.sampleRate) /CHUNK_SIZE)*CHUNK_SIZE;
-                             ctx.fillRect(0,0,256,256);
-                             ctx.beginPath();
-                             ctx.moveTo(0,(y[offset]+1)*128);
-                             for(let x=0;x<CHUNK_SIZE;x++) {
-                               ctx.lineTo(x, 256-(y[x+offset]+1)*128);
-                             }
-                             ctx.stroke();
-                             requestAnimationFrame(frame);
-                           }
-                           const request = requestAnimationFrame(frame);
-                           cancelAnimationFrame(request-1);
-                         }};
+    }, osci: function(ctx, buffer) {
+      if(buffer.numberOfChannels != 2) {
+        ctx.fillStyle="red";
+        ctx.fillRect(0,0,256,256);
+        return;
+      }
+      const x = buffer.getChannelData(0);
+      const y = buffer.getChannelData(1);
+      ctx.fillStyle = "rgba(0,0,0,0.5)";
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "lime";
+      const start = self.audioCtx.currentTime;
+      const CHUNK_SIZE = 256;
+      function frame() {
+        if(!self.playing) {
+          return;
+        }
+        const offset = floor((self.audioCtx.currentTime - start) * buffer.sampleRate);
+        ctx.fillRect(0,0,256,256);
+        ctx.beginPath();
+        ctx.moveTo((x[offset]+1)*128,(y[offset]+1)*128);
+        for(let i=offset+1;i<offset+CHUNK_SIZE;i++) {
+          const distance = Math.sqrt((x[i]-x[i-1])**2+(y[i]-y[i-1])**2);
+          if(distance>0.3) {
+            ctx.moveTo((x[i]+1)*128, (y[i]+1)*128);
+          } else {
+            ctx.lineTo((x[i]+1)*128, (y[i]+1)*128);
+          }
+        }
+        ctx.stroke();
+        requestAnimationFrame(frame);
+      }
+      const request = requestAnimationFrame(frame);
+      cancelAnimationFrame(request-1);
+    }, wave: function(ctx, buffer) {
+      const y = buffer.getChannelData(0);
+      ctx.fillStyle = "rgba(0,0,0,0.5)";
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "white";
+      const start = self.audioCtx.currentTime;
+      const CHUNK_SIZE = 256;
+      function frame() {
+        if(!self.playing) {
+          return;
+        }
+        const offset = floor( floor((self.audioCtx.currentTime - start) * buffer.sampleRate) /CHUNK_SIZE)*CHUNK_SIZE;
+        ctx.fillRect(0,0,256,256);
+        ctx.beginPath();
+        ctx.moveTo(0,(y[offset]+1)*128);
+        for(let x=0;x<CHUNK_SIZE;x++) {
+          ctx.lineTo(x, 256-(y[x+offset]+1)*128);
+        }
+        ctx.stroke();
+        requestAnimationFrame(frame);
+      }
+      const request = requestAnimationFrame(frame);
+      cancelAnimationFrame(request-1);
+    }};
     if(visualizer=="none") {
       return;
     }
