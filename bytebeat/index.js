@@ -1,4 +1,8 @@
 "use strict";
+let mathProperties = Object.getOwnPropertyNames(Math);
+for(let property of mathProperties) {
+  window[property] = Math[property];
+}
 let customFunctions = {
   rnd_num: round(random() * 256),
   rnd: (x) => random() * 256,
@@ -10,10 +14,6 @@ let customFunctions = {
   minrnd_num: (v, x) => min(round(random() * v), x),
 }
 //custom operations by u/psubscirbe <3
-let mathProperties = Object.getOwnPropertyNames(Math);
-for(let property of mathProperties) {
-  window[property] = Math[property];
-}
 let customProperties = Object.getOwnPropertyNames(customFunctions);
 for(let property of customProperties) {
   window[property] = customFunctions[property];
