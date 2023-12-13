@@ -356,44 +356,42 @@ const text = document.getElementById("splashtext");
 const textcon = Math.floor(Math.random() * str001.length);
 const strset = str001[textcon];
 text.textContent = strset;
-const urlParams = new URLSearchParams(window.location.hash.slice(1));
-const currentFormula = urlParams.get('formula') || '';
-const currentSampleRate = urlParams.get('sampleRate') || 8000;
-const currentDuration = urlParams.get('duration') || 20;
-const currentMode = urlParams.get('mode') || 'bytebeat';
-const currentVisualizer = urlParams.get('visualizer') || 'none';
 
+let options = [];
+for(let optionList of document.getElementsByClassName("options")) {
+  options = options.concat(Array.from(optionList.children));
+}
+const defaults = {
+  sampleRate: 8000,
+  mode: "bytebeat",
+  visualizer: "none",
+  rendering: "once"
+};
 function updateURLHash() {
   const newURLParams = new URLSearchParams();
   newURLParams.set('formula', formula.value);
-  if(sampleRate.value != 8000) {
-    newURLParams.set('sampleRate', sampleRate.value);
-  }
-  newURLParams.set('duration', duration.value);
-  if(mode.value != "bytebeat") {
-    newURLParams.set('mode', mode.value);
-  }
-  if(visualizer.value != "none") {
-    newURLParams.set('visualizer', visualizer.value);
+  for(let option of options) {
+    let name = option.id;
+    if(defaults[name]!=option.value) {
+      newURLParams.set(name, option.value);
+    }
   }
   window.location.hash = newURLParams.toString();
 }
+const urlParams = new URLSearchParams(window.location.hash.slice(1));
 const formula = document.getElementById('formula');
-formula.value = currentFormula;
+formula.value = urlParams.get('formula') || 't*(42&t>>10)';
 formula.addEventListener('input', updateURLHash);
-const sampleRate = document.getElementById('sampleRate');
-sampleRate.value = currentSampleRate;
-sampleRate.addEventListener('input', updateURLHash);
-const duration = document.getElementById('duration');
-duration.value = currentDuration;
-duration.addEventListener('input', updateURLHash);
-const mode = document.getElementById('mode');
-mode.value = currentMode;
-mode.addEventListener('input', updateURLHash);
-const visualizer = document.getElementById('visualizer');
-visualizer.value = currentVisualizer;
-visualizer.addEventListener('input', updateURLHash);
-updateVisualizer(visualizer);
+for(let option of options) {
+  let name = option.id;
+  if(urlParams.get(name)) {
+    option.value = urlParams.get(name);
+  } else {
+    option.value = defaults[name]
+  }
+  option.addEventListener('input', updateURLHash);
+}
+updateVisualizer(document.getElementById("visualizer"));
 
 function copyLocationHref() {
   const locationHref = window.location.href;
