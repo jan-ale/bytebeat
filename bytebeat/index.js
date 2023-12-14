@@ -361,13 +361,13 @@ let options = [];
 for(let optionList of document.getElementsByClassName("options")) {
   options = options.concat(Array.from(optionList.children));
 }
-const defaults = {
-  sampleRate: 8000,
-  mode: "bytebeat",
-  visualizer: "none",
-  rendering: "once"
-};
 function updateURLHash() {
+  const defaults = {
+    sampleRate: 8000,
+    mode: "bytebeat",
+    visualizer: "none",
+    rendering: "once"
+  };
   const newURLParams = new URLSearchParams();
   newURLParams.set('formula', formula.value);
   for(let option of options) {
@@ -382,6 +382,13 @@ const urlParams = new URLSearchParams(window.location.hash.slice(1));
 const formula = document.getElementById('formula');
 formula.value = urlParams.get('formula') || 't*(42&t>>10)';
 formula.addEventListener('input', updateURLHash);
+const defaults = {
+  sampleRate: 8000,
+  duration: 20,
+  mode: "bytebeat",
+  visualizer: "none",
+  rendering: "once"
+};
 for(let option of options) {
   let name = option.id;
   if(urlParams.get(name)) {
