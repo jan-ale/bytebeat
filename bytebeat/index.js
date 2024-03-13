@@ -283,7 +283,7 @@ class BytebeatPlayer {
       ctx.lineWidth = 1;
       ctx.strokeStyle = "lime";
       const start = self.audioCtx.currentTime;
-      const CHUNK_SIZE = 256;
+      let oldoffset = 0;
       function frame() {
         if(!self.playing) {
           return;
@@ -292,15 +292,16 @@ class BytebeatPlayer {
         ctx.fillRect(0,0,256,256);
         ctx.beginPath();
         ctx.moveTo((x[offset]+1)*128,(y[offset]+1)*128);
-        for(let i=offset+1;i<offset+CHUNK_SIZE;i++) {
+        for(let i=oldoffset;i<offset;i++) {
           const distance = Math.sqrt((x[i]-x[i-1])**2+(y[i]-y[i-1])**2);
-          if(distance>0.3) {
+          if(distance>0.1) {
             ctx.moveTo((x[i]+1)*128, (y[i]+1)*128);
           } else {
             ctx.lineTo((x[i]+1)*128, (y[i]+1)*128);
           }
         }
         ctx.stroke();
+        oldoffset = offset;
         requestAnimationFrame(frame);
       }
       const request = requestAnimationFrame(frame);
