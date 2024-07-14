@@ -21,25 +21,28 @@
       }
 
       body {
-        --main-background-color: black;
+        --main-background-color: #222;
         --main-text-color: white;
         --main-border-color: #497187;
         --font-family: Courier, monospace;
         --highlight-background-color: #122436;
-        --highlight-text-color: #FF9062;
+        --highlight-text-color: #f63;
         --invert-background-color: white;
         --link-color-main: powderblue;
         --link-color-visited: plum;
         --good: lime;
-        --bad: red;
+        --bad: #f66;
       }
 
       body.light {
         --main-border-color: #99cae5;
         --highlight-background-color: #d3e5f6;
+        --highlight-text-color: #d30;
         --invert-background-color: black;
         --link-color-main: blue;
         --link-color-visited: purple;
+        --good: #070;
+        --bad: #a00;
       }
 
       body {
@@ -127,7 +130,7 @@
   <body>
     <h1>Bytebeat Editor</h1>
     <p id="splashtext" title="It's just a splash text, what did you even expect?">NaN</p>
-    <span>Formula:</span>
+    <label for="formula">Formula:</label>
     <div>
       <textarea id="formula"></textarea>
     </div>
@@ -146,6 +149,7 @@
       <button onclick="player.stop()" id="stop" title="Click to stop the generated code on the formula.">Stop</button>
     </div>
     <div class="options">
+      <label for="mode">Mode:</label>
       <select id="mode" title='Select mode, default mode is "Bytebeat".'>
         <option value="bytebeat">Bytebeat</option>
         <option value="signedbytebeat">Signed Bytebeat</option>
@@ -153,12 +157,18 @@
         <option value="bitbeat">Bitbeat</option>
         <option value="1024">1024</option>
       </select>
+    </div>
+    <div class="options">
+      <label for="visualizer">Visualizer:</label>
       <select id="visualizer" title="Visualizer">
         <option value="none">none</option>
         <option value="square">square</option>
         <option value="osci">oscilloscope</option>
         <option value="wave">waveform</option>
       </select>
+    </div>
+    <div class="options">
+      <label for="rendering">Rendering:</label>
       <select id="rendering" title="How to play">
         <option value="once">Play for duration</option>
         <option value="endless">Play endlessly</option>
@@ -170,7 +180,7 @@
     </div>
     <div>
       <label for="volume">Volume:</label>
-      <input id="volume" type="range" min="0" max="1" step="any" value="0.5" oninput="player.setVolume(this.value)">
+      <input id="volume" type="range" min="0" max="1" step="0.05" value="0.5" oninput="player.setVolume(this.value)">
     </div>
     <br>
     <h2>Found a bug/other thing?</h2>
@@ -190,15 +200,14 @@
         <a href="http://canonical.org/~kragen/bytebeat/" target="_blank">History of bytebeat</a>
       </span>
     </div>
-    <br>
     <a href="https://psubscirbe-bytebeat.neocities.org/library.txt" target="_blank">Library</a>
     <a href="https://psubscirbe-bytebeat.neocities.org/ownerlibrary.txt" target="_blank">Owner library</a>
     <a href="https://psubscirbe-bytebeat.neocities.org/bigcodelibrary.txt" target="_blank">Big code library</a>
     <h1>Customization</h1>
     <br>
-    <input id="bgCol" type="color" title="Background color" value="#000000">
-    <input id="txtCol" type="color" title="Text color" value="#FFFFFF">
-    <select id="FontCh">
+    <label for="bgCol">Background color:</label> <input id="bgCol" type="color" title="Background color" value="#222222"> <br>
+    <label for="txtCol">Text color:</label> <input id="txtCol" type="color" title="Text color" value="#ffffff"> <br>
+    <label for="FontCh">Font:</label> <select id="FontCh">
       <option value="Courier">Default (Courier)</option>
       <option value="Consolas">Consolas</option>
       <option value="Comic Sans MS">Comic Sans</option>
@@ -206,8 +215,8 @@
       <option value="Times New Roman">Roman</option>
       <option value="Verdana">Verdana</option>
       <option value="unifont, unifont_upper, unifont_csur">Unifont</option>
-    </select>
-    <input type="file" id="backgroundInput" accept="image/*">
+    </select> <br>
+    <label for="backgroundInput">Background image:</label> <input type="file" id="backgroundInput" accept="image/*">
     <button onclick="changeBackground()" id="changeBG">Apply</button>
     <br>
     <h1>Forks</h1>

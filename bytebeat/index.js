@@ -34,13 +34,18 @@ function secure() {
 
 const bgPicker = document.getElementById("bgCol");
 const txtPicker = document.getElementById("txtCol");
-
+if (matchMedia("(prefers-color-scheme: light)").matches) {
+  bgPicker.value = "#ffffff";
+  txtPicker.value = "#000000";
+  updateBgCol();
+  updateTxtCol(); //calls updateTheme twice? might be a problem
+}
 //load theme from local storage
-if(localStorage.getItem("bg-color") !== null) {
+if (localStorage.getItem("bg-color") !== null) {
   bgPicker.value = localStorage.getItem("bg-color");
   updateBgCol();
 }
-if(localStorage.getItem("txt-color") !== null) {
+if (localStorage.getItem("txt-color") !== null) {
   txtPicker.value = localStorage.getItem("txt-color");
   updateTxtCol();
 }
